@@ -1,0 +1,57 @@
+body {
+	background: #66CCFF;
+}	
+
+#canvas {				
+	margin-top: 100px;
+	border: thin solid #aaaaaa;
+	cursor: crosshair;
+	position: absolute;
+	left: 190px;	
+	top: 210px;
+	background: #ffffff;
+}
+
+#titulo {
+	text-align: "center";
+	letter-spacing: .2em;
+	color: #FFFFFF;
+	font-weight: bold;
+	font-family: proxima-nova;
+	font-size: 54px;
+	/* padding: 80px 80px 50px ; */
+	margin-bottom: 0px;
+}
+
+#botao-div {
+	padding: 54px;
+	border: #999 1px none;
+	font-family: proxima-nova;
+	background: #66CCFF;
+	border-radius: 3px;
+}
+
+#botao-local {
+	font-family: proxima-nova;
+	background-color: #52A3CC;
+	border: 5px solid #FFF;
+	color: #FFF;
+	font-weight: 600;
+	padding-left: 25px;
+	padding-right: 25px;
+	padding-top: 17px;
+	padding-bottom: 17px;
+	margin-right: 20px;
+}
+
+#botao-url {
+	font-family: proxima-nova;
+	background-color: #52A3CC;
+	border: 5px solid #FFF;
+	color: #FFF;
+	font-weight: 600;
+	padding-left: 25px;
+	padding-right: 25px;
+	padding-top: 17px;
+	padding-bottom: 17px;
+}
