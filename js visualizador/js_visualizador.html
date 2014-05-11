@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html lang="pt-br">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset="utf-8">
+		<title>JS Visualizador</title>
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="shortcut icon" href="img/craeteafavicon.jpg">
+	</head>
+	
+	<body>
+		<div id="div-title">
+		  <h1>VISUALIZE SUA IMAGEM</h1>		  
+		</div>
+		
+		<div id="instrucao-div">
+			
+				<strong>Instruções:</strong><br/> 
+				Para visualizar uma nova imagem, pressione a tecla <i>F5</i> e dê o caminho ou <i>URL</i> da imagem, incluindo a extensão (.jpg ou .png), e pressione o botão correspondente.<br/>
+				Arraste a imagem para visualizar todo o seu conteúdo. <br/>
+				Clique na imagem para dar <i>zoom in</i>. Segure a tecla shift e clique para dar <i>zoom out</i>.<br/>
+				
+		</div>
+		
+		<div class="div-botoes">
+				<button id="botao-seleciona-arquivo" title="Clique e escolha um arquivo" onClick="init()">LOCAL</button>
+				<button id="botaoUrl" onClick="init()" title="Preencha o campo e clique para buscar">URL</button>
+				<input id="text_url" type="text" placeholder="CAMINHO OU URL">
+		</div>
+		
+		<!-- <div id="canvas-id"> -->
+		
+		  <div id="interior">
+			<canvas id="canvas" width="1000" height="600"></canvas>
+		  </div>
+		  
+		<!-- </div> -->
+			
+		<script type="text/javascript" charset="utf-8">
+		
+			var canvas = document.getElementsByTagName('canvas')[0];
+			canvas.width = 800; canvas.height = 600;
+			var imagem = new Image;
+			var ball   = new Image;
+			var origemImagem = document.getElementById("text_url").value;
+			<!-- var origemImagem = "acordeon.jpg"; -->
+			
+			function init(){
+				
+				<!-- var origemImagem = document.getElementById("text_url").value; -->
+								
+				var contexto = canvas.getContext('2d');
+				
+				trackTransforms(contexto);
+				
+				function refazCanvas(){
+				
+					// Remove a imagem anterior do canvas.
+					var p1 = contexto.transformedPoint(0,0);
+					var p2 = contexto.transformedPoint(canvas.width,canvas.height);
+					contexto.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+
+					contexto.drawImage(imagem,200,50);
+
+					contexto.beginPath();
+					contexto.lineWidth = 0;
+					contexto.moveTo(399,250);
+					contexto.lineTo(474,256);
+					<!-- contexto.stroke(); -->
+
+					contexto.save();
+					contexto.translate(-4,2);
+					contexto.beginPath();
+					contexto.lineWidth = 0;
+					contexto.moveTo(436,253);
+					contexto.lineTo(437.5,233);
+					<!-- contexto.stroke(); -->
+
+					contexto.save();
+					contexto.translate(438.5,223);
+					contexto.strokeStyle = '#06c';
+					contexto.beginPath();
+					contexto.lineWidth = 0.05;
+					for (var i=0;i<60;++i){
+						contexto.rotate(6*i*Math.PI/180);
+						contexto.moveTo(9,0);
+						contexto.lineTo(10,0);
+						contexto.rotate(-6*i*Math.PI/180);
+					}
+					<!-- contexto.stroke(); -->
+					contexto.restore();
+
+					contexto.beginPath();
+					contexto.lineWidth = 0;
+					contexto.arc(438.5,223,10,0,Math.PI*2);
+					<!-- contexto.stroke(); -->
+					contexto.restore();
+					
+					<!-- contexto.drawImage(ball,379,233,40,40); -->
+					<!-- contexto.drawImage(ball,454,239,40,40); -->
+					<!-- contexto.drawImage(ball,310,295,20,20); -->
+					<!-- contexto.drawImage(ball,314.5,296.5,5,5); -->
+					<!-- contexto.drawImage(ball,319,297.2,5,5); -->
+				}
+				refazCanvas();
+				
+				var pontoX=canvas.width/2, pontoY=canvas.height/2;
+				var moveCanvas,canvasMovido;
+				canvas.addEventListener('mousedown',function(evt){
+					document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+					pontoX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+					pontoY = evt.offsetY || (evt.pageY - canvas.offsetTop);
+					moveCanvas = contexto.transformedPoint(pontoX,pontoY);
+					canvasMovido = false;
+				},false);
+				canvas.addEventListener('mousemove',function(evt){
+					pontoX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+					pontoY = evt.offsetY || (evt.pageY - canvas.offsetTop);
+					canvasMovido = true;
+					if (moveCanvas){
+						var pt = contexto.transformedPoint(pontoX,pontoY);
+						contexto.translate(pt.x-moveCanvas.x,pt.y-moveCanvas.y);
+						refazCanvas();
+					}
+				},false);
+				canvas.addEventListener('mouseup',function(evt){
+					moveCanvas = null;
+					if (!canvasMovido) zoom(evt.shiftKey ? -1 : 1 );
+				},false);
+
+				var scaleFactor = 1.1;
+				var zoom = function(clicks){
+					var pt = contexto.transformedPoint(pontoX,pontoY);
+					contexto.translate(pt.x,pt.y);
+					var factor = Math.pow(scaleFactor,clicks);
+					contexto.scale(factor,factor);
+					contexto.translate(-pt.x,-pt.y);
+					refazCanvas();
+				}
+
+				var handleScroll = function(evt){
+					var delta = evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
+					if (delta) zoom(delta);
+					return evt.preventDefault() && false;
+				};
+				canvas.addEventListener('DOMMouseScroll',handleScroll,false);
+				canvas.addEventListener('mousewheel',handleScroll,false);
+			};
+			
+			imagem.src = origemImagem;
+			
+			function trackTransforms(contexto){
+				var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
+				var xform = svg.createSVGMatrix();
+				contexto.getTransform = function(){ return xform; };
+				
+				var savedTransforms = [];
+				var save = contexto.save;
+				contexto.save = function(){
+					savedTransforms.push(xform.translate(0,0));
+					return save.call(contexto);
+				};
+				var restore = contexto.restore;
+				contexto.restore = function(){
+					xform = savedTransforms.pop();
+					return restore.call(contexto);
+				};
+
+				var scale = contexto.scale;
+				contexto.scale = function(sx,sy){
+					xform = xform.scaleNonUniform(sx,sy);
+					return scale.call(contexto,sx,sy);
+				};
+				var rotate = contexto.rotate;
+				contexto.rotate = function(radians){
+					xform = xform.rotate(radians*180/Math.PI);
+					return rotate.call(contexto,radians);
+				};
+				var translate = contexto.translate;
+				contexto.translate = function(dx,dy){
+					xform = xform.translate(dx,dy);
+					return translate.call(contexto,dx,dy);
+				};
+				var transform = contexto.transform;
+				contexto.transform = function(a,b,c,d,e,f){
+					var m2 = svg.createSVGMatrix();
+					m2.a=a; m2.b=b; m2.c=c; m2.d=d; m2.e=e; m2.f=f;
+					xform = xform.multiply(m2);
+					return transform.call(contexto,a,b,c,d,e,f);
+				};
+				var setTransform = contexto.setTransform;
+				contexto.setTransform = function(a,b,c,d,e,f){
+					xform.a = a;
+					xform.b = b;
+					xform.c = c;
+					xform.d = d;
+					xform.e = e;
+					xform.f = f;
+					return setTransform.call(contexto,a,b,c,d,e,f);
+				};
+				var pt  = svg.createSVGPoint();
+				contexto.transformedPoint = function(x,y){
+					pt.x=x; pt.y=y;
+					return pt.matrixTransform(xform.inverse());
+				}
+			}
+	</script>
+	</body>
+</html>
